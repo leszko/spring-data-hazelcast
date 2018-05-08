@@ -22,8 +22,6 @@ Neil Stevenson <neil@hazelcast.com>; Viktor Gamov <viktor@hazelcast.com> © 2016
 
 Welcome to Spring Data Hazelcast project!
 
-https://drone.io/github.com/hazelcast/spring-data-hazelcast/latest[image:https://drone.io/github.com/hazelcast/spring-data-hazelcast/status.png[Build Status]]
-
 toc::[]
 
 The primary goal of the Spring Data project is to make it easier to build Spring-powered applications that use data access technologies. 
@@ -63,6 +61,7 @@ Through the means of the repository interface, CRUD operations, and expression-b
 - Utilizes the new Spring-Data-Key value abstraction, we did not reinvent the wheel
 - ​*FURTHER*​ eases the integration of Hazelcast into Spring and clouds
 - Reduces vendor lock-in. One can swap Hazelcast in place of more expensive or slower options
+- @Query Support
 
 == Usage
 
@@ -118,6 +117,52 @@ public class AppTest {
 
 ----
 
+== Sample @Query Usages
+Query with hardcoded value
+[source,java]
+----
+@Query("firstname=James")
+public List<Person> peoplewiththeirFirstNameIsJames();
+----
+Query with one variable
+[source,java]
+----
+@Query("firstname=%s")
+public List<Person> peoplewiththeirFirstName(String firstName);
+----
+Query with multiple variable values
+[source,java]
+----
+@Query("firstname=%s and lastname=%s")
+public List<Person> peoplewithFirstAndLastName(String firstName,String lastName);
+----
+
+== Supported Query Keywords
+----
+True
+False
+Equal
+NotEqual
+Before
+LessThan
+LessThanEqual
+After
+GreaterThan
+GreaterThanEqual
+Between
+IsNull
+IsNotNull
+In
+NotIn
+Containing
+NotContaining
+StartingWith
+EndingWith
+Like
+NotLike
+Regex
+----
+
 == Installation
 
 === Maven
@@ -128,7 +173,7 @@ public class AppTest {
 <dependency>
     <groupId>com.hazelcast</groupId>
     <artifactId>spring-data-hazelcast</artifactId>
-    <version>1.0</version>
+    <version>1.1.1</version>
 </dependency>
 ----
 
@@ -138,7 +183,7 @@ public class AppTest {
 ----
 // Add dependency
 dependencies {
-    compile 'com.hazelcast:spring-data-hazelcast:1.0'
+    compile 'com.hazelcast:spring-data-hazelcast:1.1.1'
 }
 ----
 

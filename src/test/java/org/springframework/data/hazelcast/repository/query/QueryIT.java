@@ -1,16 +1,5 @@
 package org.springframework.data.hazelcast.repository.query;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
-import javax.annotation.Resource;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -20,11 +9,35 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
+import test.utils.TestConstants;
+import test.utils.Oscars;
 import test.utils.TestDataHelper;
 import test.utils.domain.Person;
 import test.utils.repository.standard.PersonRepository;
-import test.utils.Constants;
-import test.utils.Oscars;
+
+import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
+
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.assertThat;
 
 /**
  * <P>
@@ -37,7 +50,7 @@ import test.utils.Oscars;
  *
  * @author Neil Stevenson
  */
-@ActiveProfiles(Constants.SPRING_TEST_PROFILE_SINGLETON)
+@ActiveProfiles(TestConstants.SPRING_TEST_PROFILE_SINGLETON)
 public class QueryIT extends TestDataHelper {
 	private static final int PAGE_0 = 0;
 	private static final int SIZE_1 = 1;
@@ -171,6 +184,30 @@ public class QueryIT extends TestDataHelper {
 		assertThat("1944", matches.size(), equalTo(1));
 		assertThat("1944", matches.get(0).getLastname(), equalTo("Crosby"));
 	}
+
+	@Test
+	public void queryAnnotation() {
+		List<Person> matches = this.personRepository.peoplewiththeirFirstNameIsJames();
+		assertThat("1940 and 1942", matches.size(), equalTo(2));
+		assertThat("1940 and 1942", matches,
+				containsInAnyOrder(hasProperty("lastname", equalTo("Cagney")), hasProperty("lastname", equalTo("Stewart"))));
+
+	}
+
+	@Test
+	public void queryAnnotationWithOneParameter() {
+		List<Person> matches = this.personRepository.peoplewiththeirFirstName("Bing");
+		assertThat("1944", matches.size(), equalTo(1));
+		assertThat("1944", matches.get(0).getLastname(), equalTo("Crosby"));
+	}
+
+	@Test
+	public void queryAnnotationWithMultipleParameter() {
+		List<Person> matches = this.personRepository.peoplewithFirstAndLastName("James", "Stewart");
+		assertThat("1940", matches.size(), equalTo(1));
+		assertThat("1940", matches.get(0).getId(), equalTo("1940"));
+	}
+
 
 	@SuppressWarnings("unchecked")
 	@Test
@@ -531,4 +568,62 @@ public class QueryIT extends TestDataHelper {
 		assertThat("All years matched", expectedYears, hasSize(0));
 	}
 
+	@Test
+	public void findByFirstnameContains() {
+		List<Person> matches = this.personRepository.findByFirstnameContains("ll");
+
+		assertThat("Wallace, 2xWilliam, Russell", matches.size(), equalTo(4));
+		assertThat("Wallace, 2xWilliam, Russell", matches,
+				hasItems(allOf(hasProperty("firstname", equalTo("Wallace")), hasProperty("lastname", equalTo("Beery"))),
+						allOf(hasProperty("firstname", equalTo("William")), hasProperty("lastname", equalTo("Holden"))),
+						allOf(hasProperty("firstname", equalTo("William")), hasProperty("lastname", equalTo("Hurt"))),
+						allOf(hasProperty("firstname", equalTo("Russell")), hasProperty("lastname", equalTo("Crowe")))));
+	}
+
+	@Test
+	public void findByFirstnameContainsAndLastnameStartsWithAllIgnoreCase() {
+		List<Person> matches = this.personRepository.findByFirstnameContainsAndLastnameStartsWithAllIgnoreCase("En", "tR");
+
+		assertThat("2xSpencer", matches.size(), equalTo(2));
+		assertThat("2xSpencer", matches,
+				hasItems(allOf(hasProperty("firstname", equalTo("Spencer")), hasProperty("lastname", equalTo("Tracy")))));
+
+	}
+
+	@Test
+	public void countByIdAfter() {
+		Long count = this.personRepository.countByIdAfter("2000");
+		assertThat("> 2000 & <= 2015 ", count, equalTo(15L));
+	}
+
+	@Test
+	public void countByIdBetween() {
+		Long count = this.personRepository.countByIdBetween("1959", "1962");
+		assertThat("between 1959 and 1962", count, equalTo(4L));
+	}
+
+	@Test
+	public void findByFirstnameIn() {
+		List<Person> matches = this.personRepository.findByFirstnameIn(Arrays.asList("Jack", "Robert"));
+
+		assertThat("3xJack, 3xRobert", matches.size(), equalTo(6));
+		assertThat("3xJack, 3xRobert", matches,
+				hasItems(allOf(hasProperty("firstname", equalTo("Jack")), hasProperty("lastname", equalTo("Lemmon"))),
+						allOf(hasProperty("firstname", equalTo("Jack")), hasProperty("lastname", equalTo("Nicholson"))),
+						allOf(hasProperty("firstname", equalTo("Jack")), hasProperty("lastname", equalTo("Nicholson"))),
+						allOf(hasProperty("firstname", equalTo("Robert")), hasProperty("lastname", equalTo("Donat"))),
+						allOf(hasProperty("firstname", equalTo("Robert")), hasProperty("lastname", equalTo("De Niro"))),
+						allOf(hasProperty("firstname", equalTo("Robert")), hasProperty("lastname", equalTo("Duvall")))));
+
+	}
+
+	@Test
+	public void findByFirstnameEndsWithAndLastnameNotIn() {
+		List<Person> matches = this.personRepository.findByFirstnameEndsWithAndLastnameNotIn("on", Arrays.asList("Heston", "Brando"));
+
+		assertThat("Jon", matches.size(), equalTo(1));
+		assertThat("Jon", matches,
+				hasItems(allOf(hasProperty("firstname", equalTo("Jon")), hasProperty("lastname", equalTo("Voight")))));
+
+	}
 }
