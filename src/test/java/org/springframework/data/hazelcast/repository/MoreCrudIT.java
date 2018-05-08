@@ -3,11 +3,15 @@ package org.springframework.data.hazelcast.repository;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -67,10 +71,32 @@ public class MoreCrudIT extends TestDataHelper {
 
 		this.languageRepository.save(yearZero);
 		
-		this.expectedException.expect(RuntimeException.class);
-		this.expectedException.expectMessage("XXX");
+		this.expectedException.expect(DuplicateKeyException.class);
+		this.expectedException.expectMessage("int 0 always considered new");
 		
 		this.languageRepository.save(yearZero);
 	}
-	
+
+
+	@Test
+	public void doubleInsert_int_zero_key_collection() throws Exception {
+		int ZERO = 0;
+		
+		assertThat("Year 0 missing before", this.languageRepository.findOne(ZERO), nullValue());
+
+		Language yearZero = new Language();
+		yearZero.setYear(ZERO);
+		yearZero.setLanguage("Zero");
+
+		Collection<Language> entities = new ArrayList<>(1);
+		entities.add(yearZero);
+		
+		this.languageRepository.save(entities);
+		
+		this.expectedException.expect(DuplicateKeyException.class);
+		this.expectedException.expectMessage("int 0 always considered new");
+		
+		this.languageRepository.save(entities);
+	}
+
 }

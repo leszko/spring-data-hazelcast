@@ -15,9 +15,13 @@
  */
 package org.springframework.data.hazelcast.repository.support;
 
+import java.io.Serializable;
+
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.keyvalue.repository.query.SpelQueryCreator;
 import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactory;
+import org.springframework.data.repository.core.EntityInformation;
+import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -60,6 +64,19 @@ public class HazelcastRepositoryFactory extends KeyValueRepositoryFactory {
 		this.keyValueOperations = keyValueOperations;
 		this.queryCreator = queryCreator;
 	}
+	
+	/* Create an implementation using captured KeyValueOperations
+	 * and the domain class metadata.
+	 * 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactory#getTargetRepository(org.springframework.data.repository.core.RepositoryInformation)
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected Object getTargetRepository(RepositoryInformation repositoryInformation) {
+		EntityInformation<?, Serializable> entityInformation = getEntityInformation(repositoryInformation.getDomainType());
+		return new SimpleHazelcastRepository(entityInformation, this.keyValueOperations);
+	}
+
 
 	/**
 	 * <P>

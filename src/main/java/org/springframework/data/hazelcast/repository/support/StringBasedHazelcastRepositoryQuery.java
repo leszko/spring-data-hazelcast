@@ -48,7 +48,8 @@ public class StringBasedHazelcastRepositoryQuery implements RepositoryQuery {
         return getMap(keySpace).values(sqlPredicate);
     }
 
-    private IMap getMap(String keySpace) {
+    @SuppressWarnings("rawtypes")
+	private IMap getMap(String keySpace) {
         return Hazelcast.getHazelcastInstanceByName(Constants.HAZELCAST_INSTANCE_NAME).getMap(keySpace);
     }
 
