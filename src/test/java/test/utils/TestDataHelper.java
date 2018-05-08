@@ -18,10 +18,6 @@ import org.springframework.data.hazelcast.repository.config.Constants;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import test.utils.domain.Makeup;
-import test.utils.domain.Movie;
-import test.utils.domain.Person;
-import test.utils.domain.Song;
 
 import java.util.Collection;
 

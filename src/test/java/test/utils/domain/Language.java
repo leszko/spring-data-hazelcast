@@ -4,7 +4,7 @@ import java.io.Serializable;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.keyvalue.annotation.KeySpace;
 
-import test.utils.Constants;
+import test.utils.TestConstants;
 
 /**
  * <P>A {@code Language} is used to hold the winners of best foreign language
@@ -18,7 +18,7 @@ import test.utils.Constants;
  * @author Neil Stevenson
  * @see https://en.wikipedia.org/wiki/List_of_Academy_Award_winners_and_nominees_for_Best_Foreign_Language_Film
  */
-@KeySpace(Constants.LANGUAGE_MAP_NAME)
+@KeySpace(TestConstants.LANGUAGE_MAP_NAME)
 public class Language implements Comparable<Language>, Serializable {
 
 	private static final long serialVersionUID = 1L;
