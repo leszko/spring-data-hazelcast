@@ -17,12 +17,17 @@ package org.springframework.data.hazelcast.repository.support;
 
 import java.io.Serializable;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import org.springframework.data.hazelcast.repository.config.Constants;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactory;
 import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactoryBean;
+import org.springframework.util.Assert;
 
 /**
  * <P>
@@ -49,6 +54,12 @@ import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFa
 public class HazelcastRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
 		extends KeyValueRepositoryFactoryBean<T, S, ID> {
 
+    private HazelcastInstance hazelcastInstance;
+
+    public void setHazelcastInstance(HazelcastInstance hazelcastInstance) {
+        this.hazelcastInstance = hazelcastInstance;
+    }
+
 	/**
 	 * <p>
 	 * Default Spring Data KeyValue constructor {@link KeyValueRepositoryFactoryBean}
@@ -57,8 +68,14 @@ public class HazelcastRepositoryFactoryBean<T extends Repository<S, ID>, S, ID e
 	 *
 	 * @param repositoryInterface must not be {@literal null}.
 	 */
+	public HazelcastRepositoryFactoryBean(Class<? extends T> repositoryInterface, HazelcastInstance hazelcastInstance) {
+		super(repositoryInterface);
+		this.hazelcastInstance = hazelcastInstance;
+	}
+
 	public HazelcastRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
 		super(repositoryInterface);
+		this.hazelcastInstance = Hazelcast.getOrCreateHazelcastInstance(new Config(Constants.HAZELCAST_INSTANCE_NAME));
 	}
 
 	/**
@@ -80,7 +97,9 @@ public class HazelcastRepositoryFactoryBean<T extends Repository<S, ID>, S, ID e
 	protected KeyValueRepositoryFactory createRepositoryFactory(KeyValueOperations operations,
 			Class<? extends AbstractQueryCreator<?, ?>> queryCreator, Class<? extends RepositoryQuery> repositoryQueryType) {
 
-		return new HazelcastRepositoryFactory(operations, queryCreator);
+        Assert.state(hazelcastInstance != null, "HazelcastInstance must be set");
+
+		return new HazelcastRepositoryFactory(operations, queryCreator, hazelcastInstance);
 	}
 
 }
